@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Screenshots captured by the agent
+screenshots/
+evidence/
+.env
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform.workdir/
+.terraform.tfstate.lock.info
