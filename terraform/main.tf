@@ -1,56 +1,12 @@
 provider "aws" {
-  region = "ap-southeast-2" # Sydney region as required
+  region  = "ap-southeast-2"
+  profile = "anhthu-aws" # Your aws profile name in ~/.aws/credentials
 }
 
 data "aws_caller_identity" "current" {}
 
 # ==========================================
-# 1. NETWORKING (VPC Public Only)
-# ==========================================
-resource "aws_vpc" "audit_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  tags = {
-    Name = "Audit-VPC-Sydney"
-  }
-}
-
-resource "aws_subnet" "public_subnet_sydney" {
-  vpc_id                  = aws_vpc.audit_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "ap-southeast-2a"
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "Audit-Public-Subnet-Sydney"
-  }
-}
-
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.audit_vpc.id
-  tags = {
-    Name = "Audit-VPC-IGW-Sydney"
-  }
-}
-
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.audit_vpc.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-  tags = {
-    Name = "Audit-Public-RouteTable-Sydney"
-  }
-}
-
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public_subnet_sydney.id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-# ==========================================
-# 2. STORAGE (S3 Evidence Bucket)
+# 1. STORAGE (S3 Evidence Bucket)
 # ==========================================
 resource "aws_s3_bucket" "evidence_bucket" {
   bucket        = "aws-security-audit-evidence-sydney-${data.aws_caller_identity.current.account_id}"
@@ -69,7 +25,7 @@ resource "aws_s3_bucket_public_access_block" "block_public" {
 }
 
 # ==========================================
-# 3. IAM ROLE & POLICIES
+# 2. IAM ROLE & POLICIES
 # ==========================================
 resource "aws_iam_role" "agent_execution_role" {
   name = "Sydney-Bedrock-Audit-Agent-Role"
@@ -156,7 +112,7 @@ resource "aws_iam_role_policy" "agent_custom_policy" {
 }
 
 # ==========================================
-# 4. AMAZON BEDROCK AGENT
+# 3. AMAZON BEDROCK AGENT
 # ==========================================
 resource "aws_bedrockagent_agent" "security_audit_agent" {
   agent_name                  = "Sydney-Infrastructure-Auditor"
